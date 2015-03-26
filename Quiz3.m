@@ -32,7 +32,7 @@ view(tree,'mode', 'graph');
     ylabel('Output');
     print('train_tree','-dpng');
     
-    rmse_train = sqrt(sum((y(trainset)-label_train).^2))
+    rmse_train = rms(label_train-y(trainset))
 
     label_test= predict(tree, x(test));
 
@@ -44,7 +44,7 @@ view(tree,'mode', 'graph');
     ylabel('Output');
     print('test_tree','-dpng');
     
-    rmse_test = sqrt(sum((y(test)-label_test).^2))
+    rmse_test = rms(label_test-y(test))
 
 % % Pruning the tree to 10 levels
 prune_tree = prune(tree, 'level', max(tree.PruneList) - 10);
@@ -60,7 +60,7 @@ view(prune_tree,'mode', 'graph');
     ylabel('Output');
     print('train_treeprune','-dpng');
     
-    rmse_train = sqrt(sum((y(trainset)-label_train).^2))
+    rmse_train = rms(label_train-y(trainset))
 
     label_test= predict(prune_tree, x(test));
     
@@ -72,14 +72,14 @@ view(prune_tree,'mode', 'graph');
     ylabel('Output');
     print('test_treeprune','-dpng');
     
-    rmse_test = sqrt(sum((y(test)-label_test).^2))
+    rmse_test = rms(label_test-y(test))
 
 %%%%%%%%%%%%%%%%%%%%%%%
 %%% Neural networks %%%
 %%%%%%%%%%%%%%%%%%%%%%%
 
 % SINGLE HIDDEN UNIT
-[output1,rmse1] = netcreation(1,x(trainset)',y(trainset)',x(test)',y(test)')
+[output1,rmsetest1,rmsetrain1] = netcreation(1,x(trainset)',y(trainset)',x(test)',y(test)')
 figure()
 plot(x(test)',output1,'-', x(test)',y(test)','o')
 title('Single Hidden Unit');
@@ -88,7 +88,7 @@ ylabel('Output');
 print('single_hidden_unit','-dpng');
 
 % TEN HIDDEN UNIT
-[output10,rmse10] = netcreation(10,x(trainset)',y(trainset)',x(test)',y(test)');
+[output10,rmsetest10,rsmetrain10] = netcreation(10,x(trainset)',y(trainset)',x(test)',y(test)');
 figure()
 plot(x(test)',output10,'-',x(test)',y(test)','o')
 title('Ten Hidden Unit');
@@ -99,14 +99,16 @@ print('ten_hidden_unit','-dpng');
 varyhiddenlayers = [1,2,5,10,20,50,100,200];
 
 for i=1:8
-    [outputtemp,rmsetemp] = netcreation(varyhiddenlayers(i),x(trainset)',y(trainset)',x(test)',y(test)');
-    storermse(i)=rmsetemp;
+    [outputtemp,rmsetest_temp,rmsetrain_temp] = netcreation(varyhiddenlayers(i),x(trainset)',y(trainset)',x(test)',y(test)');
+    storetestrmse(i)=rmsetest_temp;
+    storetrainrmse(i)=rmsetrain_temp;
 end
 
 figure();
-semilogx(varyhiddenlayers,storermse','-');
+semilogx(varyhiddenlayers,storetestrmse','-',varyhiddenlayers,storetrainrmse,'-');
+legend('Testing RMSE','Training RMSE');
 hold on;
-semilogx(varyhiddenlayers,storermse','o');
+semilogx(varyhiddenlayers,storetestrmse','o',varyhiddenlayers,storetrainrmse,'o');
 title('Hidden Unit vs. RMSE');
 xlabel('Hidden Units');
 ylabel('RMSE');
